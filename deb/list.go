@@ -44,6 +44,10 @@ var (
 	_ sort.Interface = &PackageList{}
 )
 
+func (l *PackageList) Packages() (map[string]*Package) {
+	return l.packages
+}
+
 // NewPackageList creates empty package list
 func NewPackageList() *PackageList {
 	return &PackageList{packages: make(map[string]*Package, 1000)}
@@ -326,16 +330,21 @@ func (l *PackageList) PrepareIndex() {
 }
 
 // Search searches package index for specified package
-func (l *PackageList) Search(dep Dependency) *Package {
+func (l *PackageList) Search(dep Dependency) *PackageList {
 	if !l.indexed {
 		panic("list not indexed, can't search")
 	}
 
+	pL := NewPackageList()
+
 	if dep.Relation == VersionDontCare {
 		for _, p := range l.providesIndex[dep.Pkg] {
 			if p.MatchesArchitecture(dep.Architecture) {
-				return p
+				pL.Add(p)
 			}
+		}
+		if pL.Len() != 0 {
+			return pL
 		}
 	}
 
@@ -344,11 +353,16 @@ func (l *PackageList) Search(dep Dependency) *Package {
 	for i < len(l.packagesIndex) && l.packagesIndex[i].Name == dep.Pkg {
 		p := l.packagesIndex[i]
 		if p.MatchesDependency(dep) {
-			return p
+			pL.Add(p)
 		}
 
 		i++
 	}
+
+	if pL.Len() != 0 {
+		return pL
+	}
+
 	return nil
 }
 
@@ -423,11 +437,13 @@ func (l *PackageList) Filter(queries []string, withDependencies bool, source *Pa
 
 			// try to satisfy dependencies
 			for _, dep := range missing {
-				p := l.Search(dep)
-				if p != nil {
-					result.Add(p)
-					dependencySource.Add(p)
-					added++
+				pList := l.Search(dep)
+				if pList != nil {
+					for _, p := range pList.packages {
+						result.Add(p)
+						dependencySource.Add(p)
+						added++
+					}
 				}
 			}
 		}

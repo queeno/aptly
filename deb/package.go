@@ -36,6 +36,36 @@ type Package struct {
 	collection *PackageCollection
 }
 
+//func (p *Package) NextVersion() string {
+//
+//	l := len(p.Version)
+//
+//	if l == 0 {
+//		return ""
+//	}
+//
+//	i := l
+//	for i > 0 {
+//
+//		if p.Version[i-1:i] == "9" {
+//			i--
+//		} else{
+//			break
+//		}
+//
+//	}
+//
+//	v, err := strconv.Atoi(p.Version[i-1:l])
+//
+//	if err != nil {
+//		return p.Version
+//	}
+//
+//	return p.Version[0:i-1] + strconv.Itoa(v+1)
+//
+//}
+
+
 // NewPackageFromControlFile creates Package from parsed Debian control file
 func NewPackageFromControlFile(input Stanza) *Package {
 	result := &Package{
@@ -43,7 +73,7 @@ func NewPackageFromControlFile(input Stanza) *Package {
 		Version:      input["Version"],
 		Architecture: input["Architecture"],
 		Source:       input["Source"],
-		V06Plus: 	  true,
+		V06Plus:	 true,
 	}
 
 	delete(input, "Package")
@@ -212,9 +242,11 @@ func (p *Package) MatchesDependency(dep Dependency) bool {
 	}
 
 	r := CompareVersions(p.Version, dep.Version)
+	rr := CompareVersions(p.Version, dep.NextVersion())
+	//fmt.Printf("CompareVersions: %d, CompareVersionsNext: %d, Currentversion: %s, NextVersion: %s, DepVersion: %s\n",r,rr,p.Version,dep.NextVersion(),dep.Version)
 	switch dep.Relation {
 	case VersionEqual:
-		return r == 0
+		return r + rr == 0 || r == 0
 	case VersionLess:
 		return r < 0
 	case VersionGreater:

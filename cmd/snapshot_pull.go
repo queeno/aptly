@@ -17,7 +17,7 @@ func aptlySnapshotPull(cmd *commander.Command, args []string) error {
 	}
 
 	noDeps := context.flags.Lookup("no-deps").Value.Get().(bool)
-	noRemove := context.flags.Lookup("no-remove").Value.Get().(bool)
+	//noRemove := context.flags.Lookup("no-remove").Value.Get().(bool)
 
 	// Load <name> snapshot
 	snapshot, err := context.CollectionFactory().SnapshotCollection().ByName(args[0])
@@ -97,24 +97,26 @@ func aptlySnapshotPull(cmd *commander.Command, args []string) error {
 			dep := dependencies[i]
 
 			// Search for package that can satisfy dependencies
-			pkg := sourcePackageList.Search(dep)
-			if pkg == nil {
+			pkgList := sourcePackageList.Search(dep)
+			if pkgList == nil {
 				context.Progress().ColoredPrintf("@y[!]@| @!Dependency %s can't be satisfied with source %s@|", &dep, source)
 				continue
 			}
 
-			if !noRemove {
-				// Remove all packages with the same name and architecture
-				for p := packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}); p != nil; {
-					packageList.Remove(p)
-					context.Progress().ColoredPrintf("@r[-]@| %s removed", p)
-					p = packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name})
-				}
-			}
+			//if !noRemove {
+			//	// Remove all packages with the same name and architecture
+			//	for p := packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}); p != nil; {
+			//		packageList.Remove(p)
+			//		context.Progress().ColoredPrintf("@r[-]@| %s removed", p)
+			//		p = packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name})
+			//	}
+			//}
 
 			// Add new discovered package
-			packageList.Add(pkg)
-			context.Progress().ColoredPrintf("@g[+]@| %s added", pkg)
+			for _, pkg := range pkgList.Packages() {
+				packageList.Add(pkg)
+				context.Progress().ColoredPrintf("@g[+]@| %s added", pkg)
+			}
 
 			if noDeps {
 				continue
@@ -122,26 +124,28 @@ func aptlySnapshotPull(cmd *commander.Command, args []string) error {
 
 			// Find missing dependencies for single added package
 			pL := deb.NewPackageList()
-			pL.Add(pkg)
+			for _, pkg := range pkgList.Packages() {
+				pL.Add(pkg)
 
-			var missing []deb.Dependency
-			missing, err = pL.VerifyDependencies(context.DependencyOptions(), []string{arch}, packageList, nil)
-			if err != nil {
-				context.Progress().ColoredPrintf("@y[!]@| @!Error while verifying dependencies for pkg %s: %s@|", pkg, err)
-			}
-
-			// Append missing dependencies to the list of dependencies to satisfy
-			for _, misDep := range missing {
-				found := false
-				for _, d := range dependencies {
-					if d == misDep {
-						found = true
-						break
-					}
+				var missing []deb.Dependency
+				missing, err = pL.VerifyDependencies(context.DependencyOptions(), []string{arch}, packageList, nil)
+				if err != nil {
+					context.Progress().ColoredPrintf("@y[!]@| @!Error while verifying dependencies for pkg %s: %s@|", pkg, err)
 				}
 
-				if !found {
-					dependencies = append(dependencies, misDep)
+				// Append missing dependencies to the list of dependencies to satisfy
+				for _, misDep := range missing {
+					found := false
+					for _, d := range dependencies {
+						if d == misDep {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						dependencies = append(dependencies, misDep)
+					}
 				}
 			}
 		}
