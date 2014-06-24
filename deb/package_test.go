@@ -2,11 +2,12 @@ package deb
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
+
 	"github.com/smira/aptly/files"
 	"github.com/smira/aptly/utils"
 	. "launchpad.net/gocheck"
-	"os"
-	"path/filepath"
 )
 
 type PackageSuite struct {
@@ -90,16 +91,16 @@ func (s *PackageSuite) TestKey(c *C) {
 	c.Check(p.Key(""), DeepEquals, []byte("Pi386 alien-arena-common 7.40-2 c8901eedd79ac51b"))
 	c.Check(p.Key("xD"), DeepEquals, []byte("xDPi386 alien-arena-common 7.40-2 c8901eedd79ac51b"))
 
-    p.V06Plus = false
-    c.Check(p.Key(""), DeepEquals, []byte("Pi386 alien-arena-common 7.40-2"))
-    c.Check(p.Key("xD"), DeepEquals, []byte("xDPi386 alien-arena-common 7.40-2"))
+	p.V06Plus = false
+	c.Check(p.Key(""), DeepEquals, []byte("Pi386 alien-arena-common 7.40-2"))
+	c.Check(p.Key("xD"), DeepEquals, []byte("xDPi386 alien-arena-common 7.40-2"))
 }
 
 func (s *PackageSuite) TestShortKey(c *C) {
-    p := NewPackageFromControlFile(s.stanza)
+	p := NewPackageFromControlFile(s.stanza)
 
-    c.Check(p.ShortKey(""), DeepEquals, []byte("Pi386 alien-arena-common 7.40-2"))
-    c.Check(p.ShortKey("xD"), DeepEquals, []byte("xDPi386 alien-arena-common 7.40-2"))
+	c.Check(p.ShortKey(""), DeepEquals, []byte("Pi386 alien-arena-common 7.40-2"))
+	c.Check(p.ShortKey("xD"), DeepEquals, []byte("xDPi386 alien-arena-common 7.40-2"))
 }
 
 func (s *PackageSuite) TestStanza(c *C) {
@@ -172,38 +173,38 @@ func (s *PackageSuite) TestMatchesDependency(c *C) {
 	p := NewPackageFromControlFile(s.stanza)
 
 	// exact match
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionEqual, Version: "7.40-2"}), Equals, true)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionEqual, Version: "7.40-2"}, false), Equals, true)
 
 	// different name
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena", Architecture: "i386", Relation: VersionEqual, Version: "7.40-2"}), Equals, false)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena", Architecture: "i386", Relation: VersionEqual, Version: "7.40-2"}, false), Equals, false)
 
 	// different version
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionEqual, Version: "7.40-3"}), Equals, false)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionEqual, Version: "7.40-3"}, false), Equals, false)
 
 	// different arch
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "amd64", Relation: VersionEqual, Version: "7.40-2"}), Equals, false)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "amd64", Relation: VersionEqual, Version: "7.40-2"}, false), Equals, false)
 
 	// empty arch
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "", Relation: VersionEqual, Version: "7.40-2"}), Equals, true)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "", Relation: VersionEqual, Version: "7.40-2"}, false), Equals, true)
 
 	// version don't care
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionDontCare, Version: ""}), Equals, true)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionDontCare, Version: ""}, false), Equals, true)
 
 	// >
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionGreater, Version: "7.40-2"}), Equals, false)
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionGreater, Version: "7.40-1"}), Equals, true)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionGreater, Version: "7.40-2"}, false), Equals, false)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionGreater, Version: "7.40-1"}, false), Equals, true)
 
 	// <
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionLess, Version: "7.40-2"}), Equals, false)
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionLess, Version: "7.40-3"}), Equals, true)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionLess, Version: "7.40-2"}, false), Equals, false)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionLess, Version: "7.40-3"}, false), Equals, true)
 
 	// >=
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionGreaterOrEqual, Version: "7.40-2"}), Equals, true)
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionGreaterOrEqual, Version: "7.40-3"}), Equals, false)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionGreaterOrEqual, Version: "7.40-2"}, false), Equals, true)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionGreaterOrEqual, Version: "7.40-3"}, false), Equals, false)
 
 	// <=
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionLessOrEqual, Version: "7.40-2"}), Equals, true)
-	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionLessOrEqual, Version: "7.40-1"}), Equals, false)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionLessOrEqual, Version: "7.40-2"}, false), Equals, true)
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionLessOrEqual, Version: "7.40-1"}, false), Equals, false)
 }
 
 func (s *PackageSuite) TestGetDependencies(c *C) {

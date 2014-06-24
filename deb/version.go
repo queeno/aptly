@@ -10,7 +10,7 @@ import (
 // Using documentation from: http://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 
 // CompareVersions compares two package versions
-func CompareVersions(ver1, ver2 string) (int) {
+func CompareVersions(ver1, ver2 string) int {
 	e1, u1, d1 := parseVersion(ver1)
 	e2, u2, d2 := parseVersion(ver2)
 
@@ -188,7 +188,6 @@ type Dependency struct {
 	Architecture string
 }
 
-
 func (d *Dependency) NextVersion() string {
 
 	l := len(d.Version)
@@ -207,7 +206,7 @@ func (d *Dependency) NextVersion() string {
 		i++
 	}
 
-	v, err := strconv.Atoi(d.Version[i-1:l])
+	v, err := strconv.Atoi(d.Version[i-1 : l])
 
 	if err != nil {
 		return d.Version
@@ -216,7 +215,6 @@ func (d *Dependency) NextVersion() string {
 	return d.Version[0:i-1] + strconv.Itoa(v+1)
 
 }
-
 
 // Hash calculates some predefined unique ID of Dependency
 func (d *Dependency) Hash() string {

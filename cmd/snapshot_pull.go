@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
+	"strings"
+
 	"github.com/smira/aptly/deb"
 	"github.com/smira/commander"
 	"github.com/smira/flag"
-	"sort"
-	"strings"
 )
 
 func aptlySnapshotPull(cmd *commander.Command, args []string) error {
@@ -98,27 +99,27 @@ func aptlySnapshotPull(cmd *commander.Command, args []string) error {
 			dep := dependencies[i]
 
 			// Search for package that can satisfy dependencies
-			pkgList := sourcePackageList.Search(dep,allPackages)
-			if pkgList == nil {
+			searchResults := sourcePackageList.Search(dep, allPackages)
+			if searchResults == nil {
 				context.Progress().ColoredPrintf("@y[!]@| @!Dependency %s can't be satisfied with source %s@|", &dep, source)
 				continue
 			}
 
 			if !noRemove {
 				// Remove all packages with the same name and architecture
-				for _, pkg := range pkgList.Packages(){
-					for pL := packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}, allPackages); pL != nil; {
-						for _, p := range pL.Packages() {
+				for _, pkg := range searchResults {
+					for pS := packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}, allPackages); pS != nil; {
+						for _, p := range pS {
 							packageList.Remove(p)
 							context.Progress().ColoredPrintf("@r[-]@| %s removed", p)
 						}
-						pL = packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}, allPackages)
+						pS = packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}, allPackages)
 					}
 				}
 			}
 
 			// Add new discovered package
-			for _, pkg := range pkgList.Packages() {
+			for _, pkg := range searchResults {
 				packageList.Add(pkg)
 				context.Progress().ColoredPrintf("@g[+]@| %s added", pkg)
 			}
@@ -129,7 +130,7 @@ func aptlySnapshotPull(cmd *commander.Command, args []string) error {
 
 			// Find missing dependencies for single added package
 			pL := deb.NewPackageList()
-			for _, pkg := range pkgList.Packages() {
+			for _, pkg := range searchResults {
 				pL.Add(pkg)
 
 				var missing []deb.Dependency

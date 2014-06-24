@@ -2,10 +2,11 @@ package deb
 
 import (
 	"fmt"
-	"github.com/smira/aptly/aptly"
-	"github.com/smira/aptly/utils"
 	"sort"
 	"strings"
+
+	"github.com/smira/aptly/aptly"
+	"github.com/smira/aptly/utils"
 )
 
 // Dependency options
@@ -44,7 +45,7 @@ var (
 	_ sort.Interface = &PackageList{}
 )
 
-func (l *PackageList) Packages() (map[string]*Package) {
+func (l *PackageList) Packages() map[string]*Package {
 	return l.packages
 }
 
@@ -267,7 +268,7 @@ func (l *PackageList) VerifyDependencies(options int, architectures []string, so
 						continue
 					}
 
-					if sources.Search(dep,false) == nil {
+					if sources.Search(dep, false) == nil {
 						variantsMissing = append(variantsMissing, dep)
 						missingCount++
 					} else {
@@ -330,25 +331,25 @@ func (l *PackageList) PrepareIndex() {
 }
 
 // Search searches package index for specified package
-func (l *PackageList) Search(dep Dependency, allPackages bool) *PackageList {
+func (l *PackageList) Search(dep Dependency, allPackages bool) []*Package {
 	if !l.indexed {
 		panic("list not indexed, can't search")
 	}
 
-	pL := NewPackageList()
+	searchResults := []*Package{}
 
 	if dep.Relation == VersionDontCare {
 		for _, p := range l.providesIndex[dep.Pkg] {
 			if p.MatchesArchitecture(dep.Architecture) {
-				pL.Add(p)
+				searchResults = append(searchResults, p)
 
 				if !allPackages {
 					break
 				}
 			}
 		}
-		if pL.Len() != 0 {
-			return pL
+		if len(searchResults) != 0 {
+			return searchResults
 		}
 	}
 
@@ -356,8 +357,8 @@ func (l *PackageList) Search(dep Dependency, allPackages bool) *PackageList {
 
 	for i < len(l.packagesIndex) && l.packagesIndex[i].Name == dep.Pkg {
 		p := l.packagesIndex[i]
-		if p.MatchesDependency(dep) {
-			pL.Add(p)
+		if p.MatchesDependency(dep, allPackages) {
+			searchResults = append(searchResults, p)
 
 			if !allPackages {
 				break
@@ -367,8 +368,8 @@ func (l *PackageList) Search(dep Dependency, allPackages bool) *PackageList {
 		i++
 	}
 
-	if pL.Len() != 0 {
-		return pL
+	if len(searchResults) != 0 {
+		return searchResults
 	}
 
 	return nil
@@ -418,7 +419,7 @@ func (l *PackageList) Filter(queries []string, withDependencies bool, source *Pa
 
 		for i < len(l.packagesIndex) && l.packagesIndex[i].Name == dep.Pkg {
 			p := l.packagesIndex[i]
-			if p.MatchesDependency(dep) {
+			if p.MatchesDependency(dep, false) {
 				result.Add(p)
 			}
 			i++
@@ -445,9 +446,9 @@ func (l *PackageList) Filter(queries []string, withDependencies bool, source *Pa
 
 			// try to satisfy dependencies
 			for _, dep := range missing {
-				pList := l.Search(dep,false)
-				if pList != nil {
-					for _, p := range pList.packages {
+				searchResults := l.Search(dep, false)
+				if searchResults != nil {
+					for _, p := range searchResults {
 						result.Add(p)
 						dependencySource.Add(p)
 						added++
