@@ -17,7 +17,8 @@ func aptlySnapshotPull(cmd *commander.Command, args []string) error {
 	}
 
 	noDeps := context.flags.Lookup("no-deps").Value.Get().(bool)
-	//noRemove := context.flags.Lookup("no-remove").Value.Get().(bool)
+	noRemove := context.flags.Lookup("no-remove").Value.Get().(bool)
+	allPackages := context.flags.Lookup("all-packages").Value.Get().(bool)
 
 	// Load <name> snapshot
 	snapshot, err := context.CollectionFactory().SnapshotCollection().ByName(args[0])
@@ -97,20 +98,24 @@ func aptlySnapshotPull(cmd *commander.Command, args []string) error {
 			dep := dependencies[i]
 
 			// Search for package that can satisfy dependencies
-			pkgList := sourcePackageList.Search(dep)
+			pkgList := sourcePackageList.Search(dep,allPackages)
 			if pkgList == nil {
 				context.Progress().ColoredPrintf("@y[!]@| @!Dependency %s can't be satisfied with source %s@|", &dep, source)
 				continue
 			}
 
-			//if !noRemove {
-			//	// Remove all packages with the same name and architecture
-			//	for p := packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}); p != nil; {
-			//		packageList.Remove(p)
-			//		context.Progress().ColoredPrintf("@r[-]@| %s removed", p)
-			//		p = packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name})
-			//	}
-			//}
+			if !noRemove {
+				// Remove all packages with the same name and architecture
+				for _, pkg := range pkgList.Packages(){
+					for pL := packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}, allPackages); pL != nil; {
+						for _, p := range pL.Packages() {
+							packageList.Remove(p)
+							context.Progress().ColoredPrintf("@r[-]@| %s removed", p)
+						}
+						pL = packageList.Search(deb.Dependency{Architecture: pkg.Architecture, Pkg: pkg.Name}, allPackages)
+					}
+				}
+			}
 
 			// Add new discovered package
 			for _, pkg := range pkgList.Packages() {
@@ -190,6 +195,7 @@ Example:
 	cmd.Flag.Bool("dry-run", false, "don't create destination snapshot, just show what would be pulled")
 	cmd.Flag.Bool("no-deps", false, "don't process dependencies, just pull listed packages")
 	cmd.Flag.Bool("no-remove", false, "don't remove other package versions when pulling package")
+	cmd.Flag.Bool("all-packages", false, "pull all the packages that satisfy version requirements")
 
 	return cmd
 }

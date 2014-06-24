@@ -267,7 +267,7 @@ func (l *PackageList) VerifyDependencies(options int, architectures []string, so
 						continue
 					}
 
-					if sources.Search(dep) == nil {
+					if sources.Search(dep,false) == nil {
 						variantsMissing = append(variantsMissing, dep)
 						missingCount++
 					} else {
@@ -330,7 +330,7 @@ func (l *PackageList) PrepareIndex() {
 }
 
 // Search searches package index for specified package
-func (l *PackageList) Search(dep Dependency) *PackageList {
+func (l *PackageList) Search(dep Dependency, allPackages bool) *PackageList {
 	if !l.indexed {
 		panic("list not indexed, can't search")
 	}
@@ -341,6 +341,10 @@ func (l *PackageList) Search(dep Dependency) *PackageList {
 		for _, p := range l.providesIndex[dep.Pkg] {
 			if p.MatchesArchitecture(dep.Architecture) {
 				pL.Add(p)
+
+				if !allPackages {
+					break
+				}
 			}
 		}
 		if pL.Len() != 0 {
@@ -354,6 +358,10 @@ func (l *PackageList) Search(dep Dependency) *PackageList {
 		p := l.packagesIndex[i]
 		if p.MatchesDependency(dep) {
 			pL.Add(p)
+
+			if !allPackages {
+				break
+			}
 		}
 
 		i++
@@ -437,7 +445,7 @@ func (l *PackageList) Filter(queries []string, withDependencies bool, source *Pa
 
 			// try to satisfy dependencies
 			for _, dep := range missing {
-				pList := l.Search(dep)
+				pList := l.Search(dep,false)
 				if pList != nil {
 					for _, p := range pList.packages {
 						result.Add(p)

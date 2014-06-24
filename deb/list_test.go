@@ -196,28 +196,28 @@ func (s *PackageListSuite) TestAppend(c *C) {
 }
 
 func (s *PackageListSuite) TestSearch(c *C) {
-	c.Check(func() { s.list.Search(Dependency{Architecture: "i386", Pkg: "app"}) }, Panics, "list not indexed, can't search")
+	c.Check(func() { s.list.Search(Dependency{Architecture: "i386", Pkg: "app"},false) }, Panics, "list not indexed, can't search")
 
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app"}), Equals, s.packages[3])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "mail-agent"}), Equals, s.packages[4])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "puppy"}), IsNil)
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app"},false), Equals, s.packages[3])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "mail-agent"},false), Equals, s.packages[4])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "puppy"},false), IsNil)
 
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionEqual, Version: "1.1~bp1"}), Equals, s.packages[3])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionEqual, Version: "1.1~bp2"}), IsNil)
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionEqual, Version: "1.1~bp1"},false), Equals, s.packages[3])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionEqual, Version: "1.1~bp2"},false), IsNil)
 
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLess, Version: "1.1"}), Equals, s.packages[3])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLess, Version: "1.1~~"}), IsNil)
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLess, Version: "1.1"},false), Equals, s.packages[3])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLess, Version: "1.1~~"},false), IsNil)
 
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLessOrEqual, Version: "1.1"}), Equals, s.packages[3])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLessOrEqual, Version: "1.1~bp1"}), Equals, s.packages[3])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLessOrEqual, Version: "1.1~~"}), IsNil)
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLessOrEqual, Version: "1.1"},false), Equals, s.packages[3])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLessOrEqual, Version: "1.1~bp1"},false), Equals, s.packages[3])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionLessOrEqual, Version: "1.1~~"},false), IsNil)
 
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreater, Version: "1.0"}), Equals, s.packages[3])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreater, Version: "1.2"}), IsNil)
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreater, Version: "1.0"},false), Equals, s.packages[3])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreater, Version: "1.2"},false), IsNil)
 
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreaterOrEqual, Version: "1.0"}), Equals, s.packages[3])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreaterOrEqual, Version: "1.1~bp1"}), Equals, s.packages[3])
-	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreaterOrEqual, Version: "1.2"}), IsNil)
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreaterOrEqual, Version: "1.0"},false), Equals, s.packages[3])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreaterOrEqual, Version: "1.1~bp1"},false), Equals, s.packages[3])
+	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreaterOrEqual, Version: "1.2"},false), IsNil)
 }
 
 func (s *PackageListSuite) TestFilter(c *C) {

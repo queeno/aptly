@@ -198,23 +198,16 @@ func (d *Dependency) NextVersion() string {
 	}
 
 	i := l
-	gotHere := false
-	for i > 0 {
 
-		if d.Version[i-1:i] == "9" {
-			i--
-			gotHere = true
-		} else{
-			if gotHere{
-				i++
-			}
-			break
-		}
+	for i > 0 && d.Version[i-1:i] == "9" {
+		i--
+	}
 
+	if i < l {
+		i++
 	}
 
 	v, err := strconv.Atoi(d.Version[i-1:l])
-	//fmt.Printf("DVERSION: %s\n",d.Version[0:i])
 
 	if err != nil {
 		return d.Version
