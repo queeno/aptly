@@ -17,29 +17,28 @@ func (c *MyChecker) Check(params []interface{}, names []string) (result bool, er
 		pkgSlice1 []*Package
 		pkgSlice2 []*Package
 		ok        bool
-		found     bool = false
 	)
+
+	pkgMap := make (map[*Package]bool)
+
 
 	pkgSlice1, ok = params[0].([]*Package)
 	if !ok {
-		return false, "First parameter is not a Package slice"
+		return false, "The first parameter is not a Package slice"
 	}
 	pkgSlice2, ok = params[1].([]*Package)
 	if !ok {
-		return false, "Second parameter is not a Package slice"
+		return false, "The second parameter is not a Package slice"
 	}
 
-	for _, pkg2 := range pkgSlice2 {
-		for _, pkg1 := range pkgSlice1 {
-			if pkg1 == pkg2 {
-				found = true
-				break
-			}
-		}
-		if !found {
+	for _, pkg := range pkgSlice2 {
+		pkgMap[pkg] = true
+	}
+
+	for _, pkg := range pkgSlice1 {
+		if _, ok := pkgMap[pkg]; !ok {
 			return false, ""
 		}
-		found = false
 	}
 	return true, ""
 }
