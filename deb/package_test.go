@@ -175,6 +175,12 @@ func (s *PackageSuite) TestMatchesDependency(c *C) {
 	// exact match
 	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionEqual, Version: "7.40-2"}, false), Equals, true)
 
+	// exact match, same version, no revision specified
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionEqual, Version: "7.40"}, false), Equals, false)
+
+	// non-exact match, same version, no revision specified
+	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena-common", Architecture: "i386", Relation: VersionEqual, Version: "7.40"}, true), Equals, true)
+
 	// different name
 	c.Check(p.MatchesDependency(Dependency{Pkg: "alien-arena", Architecture: "i386", Relation: VersionEqual, Version: "7.40-2"}, false), Equals, false)
 

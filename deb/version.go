@@ -188,8 +188,8 @@ type Dependency struct {
 	Architecture string
 }
 
+// NextVersion returns the next version of a dependecy (eg. if d.Version is 1.9, it returns 1.10)
 func (d *Dependency) NextVersion() string {
-
 	l := len(d.Version)
 
 	if l == 0 {
@@ -197,23 +197,18 @@ func (d *Dependency) NextVersion() string {
 	}
 
 	i := l
-
-	for i > 0 && d.Version[i-1:i] == "9" {
+	for  i > 0  {
+		_, err := strconv.ParseUint(d.Version[i-1:l],10,0)
+		if err != nil { break }
 		i--
 	}
 
-	if i < l {
-		i++
-	}
-
-	v, err := strconv.Atoi(d.Version[i-1 : l])
-
+	v, err := strconv.ParseUint(d.Version[i:l],10,0)
 	if err != nil {
 		return d.Version
 	}
 
-	return d.Version[0:i-1] + strconv.Itoa(v+1)
-
+	return d.Version[0:i] + strconv.Itoa(int(v)+1)
 }
 
 // Hash calculates some predefined unique ID of Dependency
