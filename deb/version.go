@@ -188,7 +188,7 @@ type Dependency struct {
 	Architecture string
 }
 
-// NextVersion returns the next version of a dependecy (eg. if d.Version is 1.9, it returns 1.10)
+// NextVersion returns the next version of a dependency (eg. if d.Version = 1.9, it returns 1.10)
 func (d *Dependency) NextVersion() string {
 	l := len(d.Version)
 
