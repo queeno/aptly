@@ -8,11 +8,11 @@ import (
 	. "launchpad.net/gocheck"
 )
 
-type MyChecker struct {
+type containsChecker struct {
 	*CheckerInfo
 }
 
-func (c *MyChecker) Check(params []interface{}, names []string) (result bool, error string) {
+func (c *containsChecker) Check(params []interface{}, names []string) (result bool, error string) {
 	var (
 		pkgSlice1 []*Package
 		pkgSlice2 []*Package
@@ -43,7 +43,7 @@ func (c *MyChecker) Check(params []interface{}, names []string) (result bool, er
 	return true, ""
 }
 
-var Contains Checker = &MyChecker{&CheckerInfo{Name: "Contains", Params: []string{"Container", "Expected to contain"}}}
+var Contains Checker = &containsChecker{&CheckerInfo{Name: "Contains", Params: []string{"Container", "Expected to contain"}}}
 
 type PackageListSuite struct {
 	// Simple list with "real" packages from stanzas
