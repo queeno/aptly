@@ -250,7 +250,7 @@ func (s *PackageListSuite) TestAppend(c *C) {
 }
 
 func (s *PackageListSuite) TestSearch(c *C) {
-	// allPackages = False
+	//allMatches = False
 	c.Check(func() { s.list.Search(Dependency{Architecture: "i386", Pkg: "app"}, false) }, Panics, "list not indexed, can't search")
 
 	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app"}, false), DeepEquals, []*Package{s.packages[3]})
@@ -274,7 +274,7 @@ func (s *PackageListSuite) TestSearch(c *C) {
 	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreaterOrEqual, Version: "1.1~bp1"}, false), DeepEquals, []*Package{s.packages[3]})
 	c.Check(s.il.Search(Dependency{Architecture: "i386", Pkg: "app", Relation: VersionGreaterOrEqual, Version: "1.2"}, false), IsNil)
 
-	// allPackages = True
+	// allMatches = True
 	c.Check(s.il2.Search(Dependency{Architecture: "amd64", Pkg: "app"}, true), Contains, []*Package{s.packages2[2], s.packages2[3], s.packages2[4], s.packages2[5]})
 	c.Check(s.il2.Search(Dependency{Architecture: "amd64", Pkg: "mail-agent"}, true), Contains, []*Package{s.packages2[0], s.packages2[1]})
 	c.Check(s.il2.Search(Dependency{Architecture: "amd64", Pkg: "puppy"}, true), IsNil)

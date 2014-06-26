@@ -331,7 +331,7 @@ func (l *PackageList) PrepareIndex() {
 }
 
 // Search searches package index for specified package
-func (l *PackageList) Search(dep Dependency, allPackages bool) []*Package {
+func (l *PackageList) Search(dep Dependency, allMatches bool) []*Package {
 	if !l.indexed {
 		panic("list not indexed, can't search")
 	}
@@ -343,7 +343,7 @@ func (l *PackageList) Search(dep Dependency, allPackages bool) []*Package {
 			if p.MatchesArchitecture(dep.Architecture) {
 				searchResults = append(searchResults, p)
 
-				if !allPackages {
+				if !allMatches {
 					break
 				}
 			}
@@ -357,10 +357,10 @@ func (l *PackageList) Search(dep Dependency, allPackages bool) []*Package {
 
 	for i < len(l.packagesIndex) && l.packagesIndex[i].Name == dep.Pkg {
 		p := l.packagesIndex[i]
-		if p.MatchesDependency(dep, allPackages) {
+		if p.MatchesDependency(dep, allMatches) {
 			searchResults = append(searchResults, p)
 
-			if !allPackages {
+			if !allMatches {
 				break
 			}
 		}
